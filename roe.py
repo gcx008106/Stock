@@ -1,7 +1,30 @@
-import yfinance as yf
-import pandas as pd
+try:
+    import yfinance as yf
+except ModuleNotFoundError as exc:  # pragma: no cover - import guard
+    yf = None
+    _YFINANCE_IMPORT_ERROR = exc
+else:
+    _YFINANCE_IMPORT_ERROR = None
+
+try:
+    import pandas as pd
+except ModuleNotFoundError as exc:  # pragma: no cover - import guard
+    pd = None
+    _PANDAS_IMPORT_ERROR = exc
+else:
+    _PANDAS_IMPORT_ERROR = None
+
 
 def get_equity_net_income_roe(ticker_symbol: str):
+    if yf is None:
+        raise ModuleNotFoundError(
+            "yfinance is not installed. Install it with: ./.venv/bin/pip install yfinance"
+        ) from _YFINANCE_IMPORT_ERROR
+    if pd is None:
+        raise ModuleNotFoundError(
+            "pandas is not installed. Install it with: ./.venv/bin/pip install pandas"
+        ) from _PANDAS_IMPORT_ERROR
+
     ticker = yf.Ticker(ticker_symbol)
 
     # 財務諸表の取得（年次）
@@ -55,3 +78,21 @@ def get_equity_net_income_roe(ticker_symbol: str):
     df = pd.DataFrame(records)
     print(f"\n==================== {ticker_symbol} の財務データ ====================")
     print(df.to_string(index=False))
+
+
+def main():
+    # ここに表示したい銘柄のティッカーシンボルをリストで指定します。
+    # 米国株はティッカーシンボルのみ、日本株はティッカーシンボルに'.T'を付けます。
+    ticker_list = [
+        "NVDA",       # NVIDIA
+        "3087.T",     # ドトール・日レスホールディングス
+        "7203.T"      # トヨタ自動車
+        # 他にも追加したい銘柄があればここに追加してください
+    ]
+
+    for ticker_symbol in ticker_list:
+        get_equity_net_income_roe(ticker_symbol)
+
+
+if __name__ == "__main__":
+    main()
